@@ -14,13 +14,14 @@ data_2 %>% filter(duracion_total_anios <= 3) %>%
         summarise(tasa_titulacion_3a_pct = mean(titulado) * 100,
                   tasa_titulacion_3a_n = sum(titulado),
                   tasa_titulacion_op_3a_pct = mean(titulado_oportuno) * 100,
-                  tasa_titulacion_op_3a_n = sum(titulado_oportuno))
+                  tasa_titulacion_op_3a_n = sum(titulado_oportuno)) %>%
+    bind_cols(
 
 data_2 %>% filter(duracion_total_anios > 3) %>%
         summarise(tasa_titulacion_4a_pct = mean(titulado) * 100,
                   tasa_titulacion_4a_n = sum(titulado),
                   tasa_titulacion_op_4a_pct = mean(titulado_oportuno) * 100,
-                  tasa_titulacion_op_4a_n = sum(titulado_oportuno))
+                  tasa_titulacion_op_4a_n = sum(titulado_oportuno)))
 
 # demographic ----
 n_obs <- data_2 %>% tally() %>% pull()
@@ -28,12 +29,12 @@ n_obs <- data_2 %>% tally() %>% pull()
 data_2 %>% group_by(dependencia_cat) %>% 
     summarise(dependencia_pct = n() / n_obs * 100,
               dependencia_n = n()) %>% 
-    ungroup()
+    ungroup() 
 
 data_2 %>% group_by(q_nse) %>%
     summarise(q_nse_pct = n() / n_obs * 100,
               q_nse_n = n()) %>%
-    ungroup()
+    ungroup())
 
 data_2 %>% summarise(mujer_pct = sum(d_mujer_alu) / n_obs * 100,
                      mujer_n = sum(d_mujer_alu),
@@ -69,5 +70,6 @@ data_2 %>% select(starts_with("ptje"), nem) %>%
               ptje_simce_mat = mean(ptje_mate2m_alu),
               nem = mean(nem))
 
+# Need to impute the values of these tests in Stata first.
 data_2 %$% sum(is.na((ptje_lect2m_alu)))
 
