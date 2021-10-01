@@ -10,6 +10,7 @@ data_2 <- data %>% filter(entra_ES == 1)
 
 # table
 # graduation rates (outcomes) ----
+graduation <-
 data_2 %>% filter(duracion_total_anios <= 3) %>% 
         summarise(tasa_titulacion_3a_pct = mean(titulado) * 100,
                   tasa_titulacion_3a_n = sum(titulado),
@@ -23,18 +24,60 @@ data_2 %>% filter(duracion_total_anios > 3) %>%
                   tasa_titulacion_op_4a_pct = mean(titulado_oportuno) * 100,
                   tasa_titulacion_op_4a_n = sum(titulado_oportuno)))
 
+data_2 %>% filter(duracion_total_anios > 3) %>% pull(titulado) %>% prop.table()
+graduation_section <-
+graduation %>% select(matches("pct$")) %>% 
+    pivot_longer(cols = everything(),
+                 names_to = "variable",
+                 values_to = "pct") %>%
+    bind_cols(
+        
+graduation %>% select(matches("n$")) %>%
+    pivot_longer(cols = everything(),
+                 names_to = "variable",
+                 values_to = "n") %>% select(-"variable")) %>%
+    arrange(variable)
+
+
+# dat %>%
+#     summarise_all(list(mean = mean,sum  = sum)) %>%
+#     tidyr::pivot_longer(cols = everything(),
+#                         names_sep = "_",
+#                         names_to  = c("variable", ".value"))
+
+# A tibble: 5 x 3
+#  variable  mean   sum
+#  <chr>    <dbl> <int>
+#1 V1        10.5   210
+#2 V2        30.5   610
+#3 V3        50.5  1010
+#4 V4        70.5  1410
+#5 V5        90.5  1810
+
+
+
+
+
 # demographic ----
 n_obs <- data_2 %>% tally() %>% pull()
 
+# set value labels as values
+data_2 <- data_2 %>% mutate(dependencia_cat = as_factor(dependencia_cat),
+                            q_nse = as_factor(q_nse))
+
 data_2 %>% group_by(dependencia_cat) %>% 
-    summarise(dependencia_pct = n() / n_obs * 100,
-              dependencia_n = n()) %>% 
-    ungroup() 
+    summarise(pct = n() / n_obs * 100,
+              n = n()) %>% 
+    ungroup() %>%
+    rename(variable = dependencia_cat) %>%
+    
+    bind_rows(
 
 data_2 %>% group_by(q_nse) %>%
-    summarise(q_nse_pct = n() / n_obs * 100,
-              q_nse_n = n()) %>%
-    ungroup())
+    summarise(pct = n() / n_obs * 100,
+              n = n()) %>%
+    ungroup() %>%
+    rename(variable = q_nse))
 
 data_2 %>% summarise(mujer_pct = sum(d_mujer_alu) / n_obs * 100,
                      mujer_n = sum(d_mujer_alu),
@@ -62,14 +105,20 @@ data_2 %>% group_by(area_conocimiento_cat) %>%
               tipo_acreditacion_n = n()) %>%
     ungroup()
 
-# academic ----
+# # academic ----
+# # I will keep this pending.
+# 
+# # these are not working.
+# data_2 %>% select(starts_with("ptje"), nem) %>%
+#     summarise(ptje_simce_lect = mean(ptje_lect2m_alu),
+#               ptje_simce_mat = mean(ptje_mate2m_alu),
+#               nem = mean(nem))
+# 
+# # Need to impute the values of these tests in Stata first..
+# data_2 %$% sum(is.na((ptje_lect2m_alu)))
+# 
 
-# these are not working.
-data_2 %>% select(starts_with("ptje"), nem) %>%
-    summarise(ptje_simce_lect = mean(ptje_lect2m_alu),
-              ptje_simce_mat = mean(ptje_mate2m_alu),
-              nem = mean(nem))
-
-# Need to impute the values of these tests in Stata first..
-data_2 %$% sum(is.na((ptje_lect2m_alu)))
-
+#' asddas
+#' asdadsdsaadsdsa
+#' asdsadss
+#' dsadsadsaa '#
