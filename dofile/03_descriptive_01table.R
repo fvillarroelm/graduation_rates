@@ -70,6 +70,6 @@ data_2 %>% select(starts_with("ptje"), nem) %>%
               ptje_simce_mat = mean(ptje_mate2m_alu),
               nem = mean(nem))
 
-# Need to impute the values of these tests in Stata first.
+# Need to impute the values of these tests in Stata first..
 data_2 %$% sum(is.na((ptje_lect2m_alu)))
 
