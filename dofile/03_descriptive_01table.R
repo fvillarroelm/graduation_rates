@@ -10,52 +10,24 @@ data_2 <- data %>% filter(entra_ES == 1)
 
 # table
 # graduation rates (outcomes) ----
-graduation <-
-data_2 %>% filter(duracion_total_anios <= 3) %>% 
-        summarise(tasa_titulacion_3a_pct = mean(titulado) * 100,
-                  tasa_titulacion_3a_n = sum(titulado),
-                  tasa_titulacion_op_3a_pct = mean(titulado_oportuno) * 100,
-                  tasa_titulacion_op_3a_n = sum(titulado_oportuno)) %>%
-    bind_cols(
 
-data_2 %>% filter(duracion_total_anios > 3) %>%
-        summarise(tasa_titulacion_4a_pct = mean(titulado) * 100,
-                  tasa_titulacion_4a_n = sum(titulado),
-                  tasa_titulacion_op_4a_pct = mean(titulado_oportuno) * 100,
-                  tasa_titulacion_op_4a_n = sum(titulado_oportuno)))
-
-data_2 %>% filter(duracion_total_anios > 3) %>% pull(titulado) %>% prop.table()
 graduation_section <-
-graduation %>% select(matches("pct$")) %>% 
-    pivot_longer(cols = everything(),
-                 names_to = "variable",
-                 values_to = "pct") %>%
-    bind_cols(
-        
-graduation %>% select(matches("n$")) %>%
-    pivot_longer(cols = everything(),
-                 names_to = "variable",
-                 values_to = "n") %>% select(-"variable")) %>%
-    arrange(variable)
+data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
+    filter(duracion_total_anios <= 3) %>% 
+    select(-duracion_total_anios) %>%
+    pivot_longer(everything()) %>%
+    mutate(name = paste0(name,"_3a")) %>%
+    group_by(name) %>%
+    summarise_all(list(mean = mean, sum = sum)) %>%
+    bind_rows(
 
-
-# dat %>%
-#     summarise_all(list(mean = mean,sum  = sum)) %>%
-#     tidyr::pivot_longer(cols = everything(),
-#                         names_sep = "_",
-#                         names_to  = c("variable", ".value"))
-
-# A tibble: 5 x 3
-#  variable  mean   sum
-#  <chr>    <dbl> <int>
-#1 V1        10.5   210
-#2 V2        30.5   610
-#3 V3        50.5  1010
-#4 V4        70.5  1410
-#5 V5        90.5  1810
-
-
-
+data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
+    filter(duracion_total_anios > 3) %>% 
+    select(-duracion_total_anios) %>%
+    pivot_longer(everything()) %>%
+    mutate(name = paste0(name,"_4a")) %>%
+    group_by(name) %>%
+    summarise_all(list(mean = mean, sum = sum)) %>% rbind(NA, NA))
 
 
 # demographic ----
