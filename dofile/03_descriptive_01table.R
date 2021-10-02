@@ -27,7 +27,8 @@ data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
     pivot_longer(everything()) %>%
     mutate(name = paste0(name,"_4a")) %>%
     group_by(name) %>%
-    summarise_all(list(mean = mean, sum = sum)) %>% rbind(NA, NA))
+    summarise_all(list(mean = mean, sum = sum)) %>% 
+    rbind(NA, NA))
 
 
 # demographic ----
@@ -37,24 +38,30 @@ n_obs <- data_2 %>% tally() %>% pull()
 data_2 <- data_2 %>% mutate(dependencia_cat = as_factor(dependencia_cat),
                             q_nse = as_factor(q_nse))
 
+demographic_section <- 
 data_2 %>% group_by(dependencia_cat) %>% 
-    summarise(pct = n() / n_obs * 100,
-              n = n()) %>% 
+    summarise(mean = n() / n_obs,
+              sum = n()) %>% 
     ungroup() %>%
-    rename(variable = dependencia_cat) %>%
+    rename(name = dependencia_cat) %>% # alert: original table has a different name order.
+    rbind(NA) %>%
     
     bind_rows(
 
 data_2 %>% group_by(q_nse) %>%
-    summarise(pct = n() / n_obs * 100,
-              n = n()) %>%
+    summarise(mean = n() / n_obs,
+              sum = n()) %>%
     ungroup() %>%
-    rename(variable = q_nse))
+    rename(name = q_nse)) %>%
+    rbind(NA) %>%
+    
+    bind_rows(
 
-data_2 %>% summarise(mujer_pct = sum(d_mujer_alu) / n_obs * 100,
-                     mujer_n = sum(d_mujer_alu),
-                     otra_region_pct = sum(d_estudia_otra_region) / n_obs * 100,
-                     otra_region_n = sum(d_estudia_otra_region))
+data_2 %>% select(d_mujer_alu, d_estudia_otra_region) %>%
+    pivot_longer(everything()) %>%
+    group_by(name) %>%
+    summarise_all(list(mean = mean, sum = sum)))
+
 
 # institutional ----
 
