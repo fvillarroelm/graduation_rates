@@ -19,6 +19,7 @@ data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
     mutate(name = paste0(name,"_3a")) %>%
     group_by(name) %>%
     summarise_all(list(mean = mean, sum = sum)) %>%
+    
     bind_rows(
 
 data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
@@ -60,29 +61,50 @@ data_2 %>% group_by(q_nse) %>%
 data_2 %>% select(d_mujer_alu, d_estudia_otra_region) %>%
     pivot_longer(everything()) %>%
     group_by(name) %>%
-    summarise_all(list(mean = mean, sum = sum)))
-
+    summarise_all(list(mean = mean, sum = sum)) %>%
+    rbind(NA, NA))
 
 # institutional ----
 
+# set value labels as values
+data_2 <- data_2 %>% mutate(rango_acreditacion_cat = as_factor(rango_acreditacion_cat),
+                            area_conocimiento_cat = as_factor(area_conocimiento_cat))
+
+
+institutional_section <- 
 data_2 %>% group_by(tipo_inst_3) %>% 
-    summarise(tipo_inst_pct = n() / n_obs * 100,
-              tipo_inst_n = n()) %>%
-    ungroup()
+    summarise(mean = n() / n_obs,
+              sum = n()) %>%
+    rename(name = tipo_inst_3) %>%
+    ungroup() %>%
+    
+    bind_rows(
 
-data_2 %>% summarise(sede_RM_pct = sum(d_sede_RM) / n_obs * 100,
-                     sede_RM_n = n())
-
+data_2 %>% select(d_sede_RM) %>%
+    pivot_longer(everything()) %>%
+    group_by(name) %>%
+    summarise_all(list(mean = mean, sum = sum)) %>%
+    rbind(NA)) %>%
+    
+    bind_rows(
 
 data_2 %>% group_by(rango_acreditacion_cat) %>% 
-    summarise(tipo_acreditacion_pct = n() / n_obs * 100,
-              tipo_acreditacion_n = n()) %>%
-    ungroup()
+    summarise(mean = n() / n_obs,
+              sum = n()) %>%
+    ungroup() %>%
+    rename(name = rango_acreditacion_cat) %>%
+    rbind(NA)) %>%
+    
+    bind_rows(
 
 data_2 %>% group_by(area_conocimiento_cat) %>% 
-    summarise(area_conocimiento_pct = n() / n_obs * 100,
-              tipo_acreditacion_n = n()) %>%
-    ungroup()
+    summarise(mean = n() / n_obs,
+              sum = n()) %>%
+    ungroup() %>%
+    rename(name = area_conocimiento_cat) %>%
+    rbind(NA))
+
+institutional_section
 
 # # academic ----
 # # I will keep this pending.
