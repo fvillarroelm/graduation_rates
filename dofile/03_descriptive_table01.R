@@ -137,8 +137,7 @@ data_2 %>% select(starts_with("ptje"), nem) %>%
 table <- 
 graduation_section %>% bind_rows(demographic_section) %>%
                         bind_rows(institutional_section) %>%
-                        bind_rows(academic_section) %>%
-                        mutate(mean = mean %>% str_replace("\\.", ","))
+                        bind_rows(academic_section)
 
 
 # overwrite results over existing table
@@ -161,8 +160,3 @@ writeData(excel_file, sheet=1, excel_table)
 saveWorkbook(excel_file, 
              here("results", "tables", "descriptive","03_descriptive_table01.xlsx"), 
              overwrite = TRUE)
-
-#' asddas
-#' asdadsdsaadsdsaaa
-#' asdsadss
-#' dsadsadsaa '#
