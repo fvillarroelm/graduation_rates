@@ -8,13 +8,10 @@ pacman::p_load(tidyverse, data.table, janitor, here, haven, magrittr, openxlsx)
 # load data
 data <- read_dta(here("data", "proc", "working_dataset_cohorte4m_2010.dta"))
 
-data_2 <- data %>% filter(entra_ES == 1)
+data_2 <- data %>% filter(entra_ES == 1 & area_conocimiento_cat != 10)
 
 # table
 # graduation rates (outcomes) ----
-n_obs_tit_3a <- data_2 %>% filter(duracion_total_anios <= 3) %>% nrow(.)
-n_obs_tit_4a <- data_2 %>% filter(duracion_total_anios > 3) %>% nrow(.)
-
 
 graduation_section <-
 data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
@@ -23,8 +20,7 @@ data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
     pivot_longer(everything()) %>%
     mutate(name = paste0(name,"_3a")) %>%
     group_by(name) %>%
-    summarise_all(list(mean = mean)) %>%
-    bind_cols(sum = n_obs_tit_3a) %>%
+    summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
     
     bind_rows(
 
@@ -34,15 +30,15 @@ data_2 %>% select(starts_with("titulado"), duracion_total_anios) %>%
     pivot_longer(everything()) %>%
     mutate(name = paste0(name,"_4a")) %>%
     group_by(name) %>%
-    summarise_all(list(mean = mean)) %>% 
-    bind_cols(sum = n_obs_tit_4a) %>%
-    rbind(NA, NA))%>%
+    summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
+    rbind(NA, NA)) %>%
     
     mutate(mean = round(mean, 3))
 
 
 # demographic ----
-n_obs <- data_2 %>% tally() %>% pull()
+n_obs_dem <- data_2 %>% filter(is.na(dependencia_cat) == 0) %>% nrow(.)
+n_obs_nse <- data_2 %>% filter(is.na(q_nse) == 0) %>% nrow(.)
 
 # set value labels as values
 data_2 <- data_2 %>% mutate(dependencia_cat = as_factor(dependencia_cat),
@@ -50,8 +46,8 @@ data_2 <- data_2 %>% mutate(dependencia_cat = as_factor(dependencia_cat),
 
 demographic_section <- 
 data_2 %>% group_by(dependencia_cat) %>% 
-    summarise(mean = n() / n_obs,
-              sum = n()) %>% 
+    summarise(mean = n() / n_obs_dem,
+              sum = n_obs_dem) %>% 
     ungroup() %>%
     rename(name = dependencia_cat) %>% # alert: original table has a different name order.
     rbind(NA) %>%
@@ -59,8 +55,8 @@ data_2 %>% group_by(dependencia_cat) %>%
     bind_rows(
 
 data_2 %>% group_by(q_nse) %>%
-    summarise(mean = n() / n_obs,
-              sum = n()) %>%
+    summarise(mean = n() / n_obs_nse,
+              sum = n_obs_nse) %>%
     ungroup() %>%
     rename(name = q_nse)) %>%
     rbind(NA) %>%
@@ -70,12 +66,15 @@ data_2 %>% group_by(q_nse) %>%
 data_2 %>% select(d_mujer_alu, d_estudia_otra_region) %>%
     pivot_longer(everything()) %>%
     group_by(name) %>%
-    summarise_all(list(mean = mean, sum = sum)) %>%
+    summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
     rbind(NA, NA))%>%
     
     mutate(mean = round(mean, 3))
 
 # institutional ----
+n_obs_inst <- data_2 %>% filter(is.na(tipo_inst_3) == 0) %>% nrow(.)
+n_obs_acr <- data_2 %>% filter(is.na(rango_acreditacion_cat) == 0) %>% nrow(.)
+n_obs_area <- data_2 %>% filter(is.na(area_conocimiento_cat) == 0) %>% nrow(.)
 
 # set value labels as values
 data_2 <- data_2 %>% mutate(rango_acreditacion_cat = as_factor(rango_acreditacion_cat),
@@ -84,8 +83,8 @@ data_2 <- data_2 %>% mutate(rango_acreditacion_cat = as_factor(rango_acreditacio
 
 institutional_section <- 
 data_2 %>% group_by(tipo_inst_3) %>% 
-    summarise(mean = n() / n_obs,
-              sum = n()) %>%
+    summarise(mean = n() / n_obs_inst,
+              sum = n_obs_inst) %>%
     rename(name = tipo_inst_3) %>%
     ungroup() %>%
     
@@ -94,14 +93,14 @@ data_2 %>% group_by(tipo_inst_3) %>%
 data_2 %>% select(d_sede_RM) %>%
     pivot_longer(everything()) %>%
     group_by(name) %>%
-    summarise_all(list(mean = mean, sum = sum)) %>%
+    summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
     rbind(NA)) %>%
     
     bind_rows(
 
 data_2 %>% group_by(rango_acreditacion_cat) %>% 
-    summarise(mean = n() / n_obs,
-              sum = n()) %>%
+    summarise(mean = n() / n_obs_acr,
+              sum = n_obs_acr) %>%
     ungroup() %>%
     rename(name = rango_acreditacion_cat) %>%
     rbind(NA)) %>%
@@ -109,8 +108,8 @@ data_2 %>% group_by(rango_acreditacion_cat) %>%
     bind_rows(
 
 data_2 %>% group_by(area_conocimiento_cat) %>% 
-    summarise(mean = n() / n_obs,
-              sum = n()) %>%
+    summarise(mean = n() / n_obs_area,
+              sum = n_obs_area) %>%
     ungroup() %>%
     rename(name = area_conocimiento_cat) %>%
     filter(!str_detect(name, "definida$")) %>%
@@ -148,7 +147,7 @@ graduation_section %>% bind_rows(demographic_section) %>%
 excel_file <- loadWorkbook(here("results", "tables", "descriptive","03_descriptive_table01.xlsx"))
 
 ## Pull all data from sheet 1
-excel_table = read.xlsx(excel_file, sheet=1)
+excel_table <- read.xlsx(excel_file, sheet=1)
 
 ## join data
 table <- table %>% add_row(mean = NA, .before = 1) # this is just for format!
