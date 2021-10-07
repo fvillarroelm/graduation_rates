@@ -90,4 +90,26 @@ table <- function(data){
 
 table_3y <- table(data_3y)
 
-table_4y <- table(data_4y)
+table_4y <- table(data_4y) %>% select(-area_conocimiento_cat)
+
+final_table <- table_3y %>% bind_cols(table_4y)
+
+# export ----
+
+# load existing file
+excel_file <- loadWorkbook(here("results", "tables", "descriptive","03_descriptive_table02.xlsx"))
+
+# pull all data from sheet 1
+excel_table <- read.xlsx(excel_file, sheet=1)
+
+# set colnames to final_table (which has the same structure as excel_file, except for the colnames)
+col_names <- excel_table %>% names()
+excel_table <- final_table %>% set_colnames(col_names)
+
+# put the data back into the workbook
+writeData(excel_file, sheet=1, excel_table)
+
+# save to disk
+saveWorkbook(excel_file, 
+             here("results", "tables", "descriptive","03_descriptive_table02.xlsx"), 
+             overwrite = TRUE)
