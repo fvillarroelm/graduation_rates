@@ -8,7 +8,11 @@ pacman::p_load(tidyverse, data.table, janitor, here, haven, magrittr, openxlsx)
 # load data
 data <- read_dta(here("data", "proc", "working_dataset_cohorte4m_2010.dta"))
 
-data_2 <- data %>% filter(entra_ES == 1 & area_conocimiento_cat != 10)
+data_2 <- data %>% filter(entra_ES == 1 & 
+                          area_conocimiento_cat != 10 & 
+                          is.na(ptje_lect2m_alu) == 0 &
+                          is.na(ptje_mate2m_alu) == 0
+                          )
 
 # table
 # graduation rates (outcomes) ----
