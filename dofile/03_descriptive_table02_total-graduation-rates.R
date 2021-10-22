@@ -84,10 +84,11 @@ table <- function(data){
     # final table
     final_table <- table_grads %>% left_join(diff_pp_and_ps_with_mun, 
                                              by = c("area_conocimiento_cat", "school_type")) %>%
-        mutate(value = case_when(p.value > 0.05 & p.value <= 0.1 ~ paste0(value, "*"),
-                                 p.value > 0.01 & p.value <= 0.05 ~ paste0(value, "**"),
-                                 p.value <= 0.01 ~ paste0(value, "***"),
-                                 TRUE ~ as.character(value))) %>%
+        mutate(value = as.character(value*100) %>% str_replace_all(., "\\.", ",")) %>%
+        mutate(value = case_when(p.value > 0.05 & p.value <= 0.1 ~ paste0(value, "% *"),
+                                 p.value > 0.01 & p.value <= 0.05 ~ paste0(value, "% **"),
+                                 p.value <= 0.01 ~ paste0(value, "% ***"),
+                                 TRUE ~ paste0(value, "%"))) %>%
         select(-p.value) %>%
         pivot_wider(names_from = "school_type", values_from = "value")
     
@@ -109,7 +110,7 @@ final_table <- table_3y %>% bind_cols(table_4y)
 # export ----
 
 # load existing file
-excel_file <- loadWorkbook(here("results", "tables", "descriptive","03_descriptive_table02.xlsx"))
+excel_file <- loadWorkbook(here("results", "tables", "descriptive","03_descriptive_table02_total-grad-rates.xlsx"))
 
 # pull all data from sheet 1
 excel_table <- read.xlsx(excel_file, sheet=1)
@@ -123,5 +124,5 @@ writeData(excel_file, sheet=1, excel_table)
 
 # save to disk
 saveWorkbook(excel_file, 
-             here("results", "tables", "descriptive","03_descriptive_table02.xlsx"), 
+             here("results", "tables", "descriptive","03_descriptive_table02_total-grad-rates.xlsx"), 
              overwrite = TRUE)
