@@ -23,8 +23,15 @@ data <- read_dta(here("data", "proc", "working_dataset_cohorte4m_2010.dta")) %>%
                nem_interval = nem %>% cut(breaks = sprintf("%0.1f", c(4, seq(4.5, 6.5, 0.5), 7)), include.lowest = T),
                d_estudia_misma_region = ifelse(d_estudia_otra_region == 1, 0, 1),
                d_hombre_alu = ifelse(d_mujer_alu == 1, 0, 1),
-               d_sede_no_RM = ifelse(d_sede_RM == 1, 0, 1))
+               d_sede_no_RM = ifelse(d_sede_RM == 1, 0, 1)) %>%
+        group_by(q_ptje_lect) %>%
+        mutate(min_max_q_ptje_lect = paste0(min(ptje_lect2m_alu),"-", max(ptje_lect2m_alu))) %>%
+        ungroup() %>%
+        group_by(q_ptje_mate) %>%
+        mutate(min_max_q_ptje_mate = paste0(min(ptje_mate2m_alu), "-", max(ptje_mate2m_alu)))
 
+#data %>% tabyl(min_max_q_ptje_lect)
+#data %>% tabyl(min_max_q_ptje_mate)
 
 # on-time grad rates, <3-year program ----
 
